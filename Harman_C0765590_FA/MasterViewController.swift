@@ -16,10 +16,14 @@ class MasterViewController: UITableViewController {
 
     var managedContext: NSManagedObjectContext?
 
+    var name, id, desc: String?
+    var price: Double?
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         navigationItem.leftBarButtonItem = editButtonItem
+        print("Master")
 
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         // second step is context
@@ -27,20 +31,21 @@ class MasterViewController: UITableViewController {
         
 //        initializeArray()
                
-        let data = loadData()
+//        let data = loadData()
+//
+//        if data.isEmpty{
+//            initializeArray()
+//        } else{
+//            loadCoreData()
+//            Product.products = []
+//            for product in data{
+//                let p = Product(id: product.value(forKey: "id") as! String, description: product.value(forKey: "descp") as! String, name: product.value(forKey: "name") as! String, price: product.value(forKey: "price") as! Double)
+//                Product.products.append(p)
+//            }
+//        }
         
-        if data.isEmpty{
-            initializeArray()
-        } else{
-            Product.products = []
-            for product in data{
-                let p = Product(id: product.value(forKey: "id") as! String, description: product.value(forKey: "descp") as! String, name: product.value(forKey: "name") as! String, price: product.value(forKey: "price") as! Double)
-                Product.products.append(p)
-            }
-        }
-        
-//        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(insertNewObject(_:)))
-//        navigationItem.rightBarButtonItem = addButton
+        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(insertNewObject(_:)))
+        navigationItem.rightBarButtonItem = addButton
         if let split = splitViewController {
             let controllers = split.viewControllers
             detailViewController = (controllers[controllers.count-1] as! UINavigationController).topViewController as? DetailViewController
@@ -53,13 +58,70 @@ class MasterViewController: UITableViewController {
         super.viewWillAppear(animated)
     }
 
-//    @objc
-//    func insertNewObject(_ sender: Any) {
-//        objects.insert(NSDate(), at: 0)
+    @objc
+    func insertNewObject(_ sender: Any) {
+
+        
+        let alertController = UIAlertController(title: "New product", message: "Enter details", preferredStyle: .alert)
+        
+        alertController.addTextField { (txtId) in
+            self.id = txtId.text
+        }
+        alertController.addTextField { (txtName) in
+            self.name = txtName.text
+        }
+        alertController.addTextField { (txtDesc) in
+            self.desc = txtDesc.text
+            
+        }
+        alertController.addTextField { (txtPrice) in
+            self.price = Double(txtPrice.text ?? "0.0") ?? 0.0
+        }
+        
+        let saveAction = UIAlertAction(title: "Save", style: .default) { (saveToCore) in
+            
+            let addProduct = NSEntityDescription.insertNewObject(forEntityName: "ProductModel", into: self.managedContext!)
+            addProduct.setValue(self.id, forKey: "id")
+            addProduct.setValue(self.name, forKey: "name")
+            addProduct.setValue(self.desc, forKey: "descp")
+            addProduct.setValue(self.price, forKey: "price")
+
+            do {
+                try self.managedContext!.save()
+            } catch {
+                print(error)
+            }
+
+        }
+        
+        alertController.addAction(saveAction)
+        self.present(alertController, animated: true, completion: nil)
+        
+        
+        loadCoreData()
+//        Product.products.append(loadData())
 //        let indexPath = IndexPath(row: 0, section: 0)
 //        tableView.insertRows(at: [indexPath], with: .automatic)
-//    }
+    }
 
+    func loadCoreData(){
+        Product.products = []
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
+        
+        do {
+            let results = try managedContext!.fetch(fetchRequest)
+            if results is [NSManagedObject] {
+                for r in results as! [NSManagedObject]{
+                    let p = Product(id: r.value(forKey: "id") as! String, description: r.value(forKey: "descp") as! String, name: r.value(forKey: "name") as! String, price: r.value(forKey: "price") as! Double)
+                    Product.products.append(p)
+                }
+            }
+        } catch {
+            print(error)
+        }
+        tableView.reloadData()
+
+    }
     // MARK: - Segues
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -107,34 +169,7 @@ class MasterViewController: UITableViewController {
     }
 
 
-    func initializeArray(){
-        for i in 1...10{
-            let product = Product(id: "P\(i)", description: "This is product \(i)", name: "Product \(i)", price: 2.4)
-            Product.products.append(product)
-        }
-        
-        saveToCoreData()
-    }
-    
-    func saveToCoreData(){
-        
-        for product in Product.products {
-            print(product.name)
-            
-            let addProduct = NSEntityDescription.insertNewObject(forEntityName: "ProductModel", into: managedContext!)
-            addProduct.setValue(product.id, forKey: "id")
-            addProduct.setValue(product.name, forKey: "name")
-            addProduct.setValue(product.description, forKey: "descp")
-            addProduct.setValue(product.price, forKey: "price")
-
-            
-        }
-        do {
-            try managedContext!.save()
-        } catch {
-            print(error)
-        }
-    }
+   ////////
     
     func loadData() -> [NSManagedObject]{
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
