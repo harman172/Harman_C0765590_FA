@@ -9,7 +9,7 @@
 import Foundation
 
 class Product{
-    internal init(id: String, description: String, name: String, price: Double) {
+    internal init(id: String, description: String, name: String, price: String) {
         self.id = id
         self.description = description
         self.name = name
@@ -19,7 +19,7 @@ class Product{
     var id: String
     var description: String
     var name: String
-    var price: Double
+    var price: String
     
     static var products = [Product]()
 }

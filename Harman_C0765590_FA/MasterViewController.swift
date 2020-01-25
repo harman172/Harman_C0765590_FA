@@ -17,7 +17,7 @@ class MasterViewController: UITableViewController {
     var managedContext: NSManagedObjectContext?
 
     var name, id, desc: String?
-    var price: Double?
+    var price: String?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -29,20 +29,7 @@ class MasterViewController: UITableViewController {
         // second step is context
         managedContext = appDelegate.persistentContainer.viewContext
         
-//        initializeArray()
-               
-//        let data = loadData()
-//
-//        if data.isEmpty{
-//            initializeArray()
-//        } else{
-//            loadCoreData()
-//            Product.products = []
-//            for product in data{
-//                let p = Product(id: product.value(forKey: "id") as! String, description: product.value(forKey: "descp") as! String, name: product.value(forKey: "name") as! String, price: product.value(forKey: "price") as! Double)
-//                Product.products.append(p)
-//            }
-//        }
+        loadCoreData()
         
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(insertNewObject(_:)))
         navigationItem.rightBarButtonItem = addButton
@@ -54,6 +41,7 @@ class MasterViewController: UITableViewController {
     }
 
     override func viewWillAppear(_ animated: Bool) {
+//        loadCoreData()
         clearsSelectionOnViewWillAppear = splitViewController!.isCollapsed
         super.viewWillAppear(animated)
     }
@@ -64,33 +52,39 @@ class MasterViewController: UITableViewController {
         
         let alertController = UIAlertController(title: "New product", message: "Enter details", preferredStyle: .alert)
         
+        var name: UITextField?
+        var id: UITextField?
+        var description: UITextField?
+        var price: UITextField?
+        
         alertController.addTextField { (txtId) in
-            self.id = txtId.text
+            id = txtId
         }
         alertController.addTextField { (txtName) in
-            self.name = txtName.text
+            name = txtName
         }
         alertController.addTextField { (txtDesc) in
-            self.desc = txtDesc.text
-            
+            description = txtDesc
+
         }
         alertController.addTextField { (txtPrice) in
-            self.price = Double(txtPrice.text ?? "0.0") ?? 0.0
+            price = txtPrice
         }
-        
+//        print("---\(txt?.text)---")
         let saveAction = UIAlertAction(title: "Save", style: .default) { (saveToCore) in
             
             let addProduct = NSEntityDescription.insertNewObject(forEntityName: "ProductModel", into: self.managedContext!)
-            addProduct.setValue(self.id, forKey: "id")
-            addProduct.setValue(self.name, forKey: "name")
-            addProduct.setValue(self.desc, forKey: "descp")
-            addProduct.setValue(self.price, forKey: "price")
+            addProduct.setValue(id!.text, forKey: "id")
+            addProduct.setValue(name!.text, forKey: "name")
+            addProduct.setValue(description!.text, forKey: "descp")
+            addProduct.setValue(price!.text, forKey: "price")
 
             do {
                 try self.managedContext!.save()
             } catch {
                 print(error)
             }
+            self.loadCoreData()
 
         }
         
@@ -98,7 +92,8 @@ class MasterViewController: UITableViewController {
         self.present(alertController, animated: true, completion: nil)
         
         
-        loadCoreData()
+        
+        
 //        Product.products.append(loadData())
 //        let indexPath = IndexPath(row: 0, section: 0)
 //        tableView.insertRows(at: [indexPath], with: .automatic)
@@ -112,7 +107,7 @@ class MasterViewController: UITableViewController {
             let results = try managedContext!.fetch(fetchRequest)
             if results is [NSManagedObject] {
                 for r in results as! [NSManagedObject]{
-                    let p = Product(id: r.value(forKey: "id") as! String, description: r.value(forKey: "descp") as! String, name: r.value(forKey: "name") as! String, price: r.value(forKey: "price") as! Double)
+                    let p = Product(id: r.value(forKey: "id") as! String, description: r.value(forKey: "descp") as! String, name: r.value(forKey: "name") as! String, price: r.value(forKey: "price") as! String)
                     Product.products.append(p)
                 }
             }
@@ -168,8 +163,6 @@ class MasterViewController: UITableViewController {
         }
     }
 
-
-   ////////
     
     func loadData() -> [NSManagedObject]{
         let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
@@ -179,7 +172,6 @@ class MasterViewController: UITableViewController {
             
             
             if results is [NSManagedObject] {
-                print("count...\(results.count)")
                 return results as! [NSManagedObject]
             }
         } catch {

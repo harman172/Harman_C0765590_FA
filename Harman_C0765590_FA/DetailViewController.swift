@@ -46,8 +46,10 @@ class DetailViewController: UIViewController {
         let data = loadData()
         
         if data.isEmpty{
+            print("empty")
             initializeArray()
         } else{
+            print("not empty")
             loadCoreData()
             
         }
@@ -68,70 +70,75 @@ class DetailViewController: UIViewController {
     }
 
         
-        func loadCoreData(){
-               Product.products = []
-               let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
-               
-               do {
-                   let results = try managedContext!.fetch(fetchRequest)
-                   if results is [NSManagedObject] {
-                       for r in results as! [NSManagedObject]{
-                           let p = Product(id: r.value(forKey: "id") as! String, description: r.value(forKey: "descp") as! String, name: r.value(forKey: "name") as! String, price: r.value(forKey: "price") as! Double)
-                           Product.products.append(p)
-                       }
-                   }
-               } catch {
-                   print(error)
-               }
-
-           }
-
-        func loadData() -> [NSManagedObject]{
-               let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
-               
-               do {
-                   let results = try managedContext!.fetch(fetchRequest)
-                   
-                   
-                   if results is [NSManagedObject] {
-                       print("count...\(results.count)")
-                       return results as! [NSManagedObject]
-                   }
-               } catch {
-                   print(error)
-               }
-
-               return [NSManagedObject]()
-               
-           }
-    
-    func initializeArray(){
-           for i in 1...10{
-               let product = Product(id: "P\(i)", description: "This is product \(i)", name: "Product \(i)", price: 2.4)
-               Product.products.append(product)
-           }
-           
-           saveToCoreData()
-       }
+    func loadCoreData(){
+       Product.products = []
+       let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
        
-       func saveToCoreData(){
-           
-           for product in Product.products {
-               print(product.name)
-               
-               let addProduct = NSEntityDescription.insertNewObject(forEntityName: "ProductModel", into: managedContext!)
-               addProduct.setValue(product.id, forKey: "id")
-               addProduct.setValue(product.name, forKey: "name")
-               addProduct.setValue(product.description, forKey: "descp")
-               addProduct.setValue(product.price, forKey: "price")
-
-               
+       do {
+           let results = try managedContext!.fetch(fetchRequest)
+           if results is [NSManagedObject] {
+            print("core data...\(results.count)")
+               for r in results as! [NSManagedObject]{
+                print("p")
+                print(r.value(forKey: "name") as! String)
+                print("--")
+                
+                   let p = Product(id: r.value(forKey: "id") as! String, description: r.value(forKey: "descp") as! String, name: r.value(forKey: "name") as! String, price: r.value(forKey: "price") as! String)
+                   Product.products.append(p)
+               }
            }
+       } catch {
+           print(error)
+       }
+
+   }
+
+    func loadData() -> [NSManagedObject]{
+           let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "ProductModel")
+           
            do {
-               try managedContext!.save()
+               let results = try managedContext!.fetch(fetchRequest)
+               
+               
+               if results is [NSManagedObject] {
+                   print("count...\(results.count)")
+                   return results as! [NSManagedObject]
+               }
            } catch {
                print(error)
            }
+
+           return [NSManagedObject]()
+           
        }
+    
+    func initializeArray(){
+       for i in 1...10{
+           let product = Product(id: "P\(i)", description: "This is product \(i)", name: "Product \(i)", price: "2.4")
+           Product.products.append(product)
+       }
+       
+       saveToCoreData()
+    }
+       
+   func saveToCoreData(){
+       
+       for product in Product.products {
+           print(product.name)
+           
+           let addProduct = NSEntityDescription.insertNewObject(forEntityName: "ProductModel", into: managedContext!)
+           addProduct.setValue(product.id, forKey: "id")
+           addProduct.setValue(product.name, forKey: "name")
+           addProduct.setValue(product.description, forKey: "descp")
+           addProduct.setValue(product.price, forKey: "price")
+
+           
+       }
+       do {
+           try managedContext!.save()
+       } catch {
+           print(error)
+       }
+   }
 }
 
